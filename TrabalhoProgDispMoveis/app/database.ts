@@ -1,10 +1,10 @@
 import { Platform } from 'react-native';
 
 export interface IBanco {
-  execAsync(sql: string, params?: any[]): Promise<void>;
-  getFirstAsync(sql: string, params?: any[]): Promise<any | null>;
-  getAllAsync(sql: string, params?: any[]): Promise<any[]>;
-  runAsync(sql: string, params?: any[]): Promise<any>;
+  execAsync(sql: string, parametros?: any[]): Promise<void>;
+  getFirstAsync(sql: string, parametros?: any[]): Promise<any | null>;
+  getAllAsync(sql: string, parametros?: any[]): Promise<any[]>;
+  runAsync(sql: string, parametros?: any[]): Promise<any>;
 }
 
 const criarTabelas = `
@@ -78,7 +78,7 @@ function criarBancoWeb(): IBanco {
     salvar(db);
   }
 
-  function dedupeWeb() {
+  function removerDuplicatasWeb() {
     const seen = new Set();
     const livrosUnicos: any[] = [];
     for (const l of db.livros) {
@@ -94,12 +94,12 @@ function criarBancoWeb(): IBanco {
     salvar(db);
   }
 
-  dedupeWeb();
+  removerDuplicatasWeb();
 
   return {
     async execAsync() {},
 
-    async getFirstAsync(sql: string, params: any[] = []): Promise<any | null> {
+    async getFirstAsync(sql: string, parametros: any[] = []): Promise<any | null> {
       const upper = sql.trim().toUpperCase();
 
       if (upper.includes('COUNT') && upper.includes('FROM LIVROS')) {
@@ -110,24 +110,24 @@ function criarBancoWeb(): IBanco {
         return { total: db.favoritos.length } as any;
       }
       if (upper.includes('FROM LIVROS') && upper.includes('WHERE')) {
-        const livro = db.livros.find((l: any) => l.id === params[0]);
+        const livro = db.livros.find((l: any) => l.id === parametros[0]);
         return (livro ?? null) as any;
       }
       
       if (upper.includes('FROM FAVORITOS') && upper.includes('WHERE')) {
-        const fav = db.favoritos.find((f: any) => f.livro_id === params[0]);
+        const fav = db.favoritos.find((f: any) => f.livro_id === parametros[0]);
         return (fav ?? null) as any;
       }
 
       return null;
     },
 
-    async getAllAsync(sql: string, params: any[] = []): Promise<any[]> {
+    async getAllAsync(sql: string, parametros: any[] = []): Promise<any[]> {
       const upper = sql.trim().toUpperCase();
 
       if (upper.includes('FROM LIVROS')) {
-        if (params.length > 0) {
-          const termo = String(params[0]).replace(/%/g, '').toLowerCase();
+        if (parametros.length > 0) {
+          const termo = String(parametros[0]).replace(/%/g, '').toLowerCase();
           const filtrados = db.livros.filter((l: any) => {
             return (
               l.titulo.toLowerCase().includes(termo) ||
@@ -152,19 +152,19 @@ function criarBancoWeb(): IBanco {
       return [];
     },
 
-    async runAsync(sql: string, params: any[] = []) {
+    async runAsync(sql: string, parametros: any[] = []) {
       const upper = sql.trim().toUpperCase();
 
       if (upper.includes('INSERT') && upper.includes('LIVROS')) {
         const novoLivro = {
-          id: params[0],
-          titulo: params[1],
-          autor: params[2],
-          categoria: params[3],
-          editora: params[4],
-          descricao: params[5],
-          capa_url: params[6],
-          ano: params[7],
+          id: parametros[0],
+          titulo: parametros[1],
+          autor: parametros[2],
+          categoria: parametros[3],
+          editora: parametros[4],
+          descricao: parametros[5],
+          capa_url: parametros[6],
+          ano: parametros[7],
           status: 'available',
         };
         db.livros.push(novoLivro);
@@ -173,19 +173,19 @@ function criarBancoWeb(): IBanco {
       }
 
       if (upper.includes('INSERT') && upper.includes('FAVORITOS')) {
-        const novoFav = { id: params[0], livro_id: params[1] };
+        const novoFav = { id: parametros[0], livro_id: parametros[1] };
         db.favoritos.push(novoFav);
         salvar(db);
         return;
       }
 
       if (upper.includes('DELETE') && upper.includes('FAVORITOS')) {
-        db.favoritos = db.favoritos.filter((f: any) => f.livro_id !== params[0]);
+        db.favoritos = db.favoritos.filter((f: any) => f.livro_id !== parametros[0]);
         salvar(db);
         return;
       }
       if (upper.includes('DELETE') && upper.includes('FROM LIVROS')) {
-        const id = params[0];
+        const id = parametros[0];
         db.livros = db.livros.filter((l: any) => l.id !== id);
         // remover favoritos relacionados
         db.favoritos = db.favoritos.filter((f: any) => f.livro_id !== id);

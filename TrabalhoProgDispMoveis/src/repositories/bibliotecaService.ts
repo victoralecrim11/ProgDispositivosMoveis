@@ -66,14 +66,14 @@ export async function listarLivros(busca = ''): Promise<Livro[]> {
   const termoBusca = busca.trim();
 
   if (termoBusca) {
-    const param = `%${termoBusca}%`;
+    const parametroBusca = `%${termoBusca}%`;
     const linhas = await db.getAllAsync(
       `SELECT id, titulo, autor, categoria, editora,
               descricao, capa_url, ano, status
        FROM livros
        WHERE titulo LIKE ? OR autor LIKE ?
        ORDER BY titulo`,
-      [param, param]
+      [parametroBusca, parametroBusca]
     );
     return linhas.map(converterLivro);
   }
