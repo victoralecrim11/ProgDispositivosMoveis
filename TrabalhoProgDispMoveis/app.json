@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Gerenciador de Biblioteca",
+    "slug": "gerenciador-biblioteca",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "assetBundlePatterns": ["**/*"]
+  }
+}
